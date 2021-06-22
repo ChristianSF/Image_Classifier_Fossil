@@ -84,9 +84,11 @@ fig = go.Figure(data=[go.Histogram(x=dados['filo'], marker_color='#330C73')], la
 
 st.plotly_chart(fig, use_container_width=True)
 
+st.subheader("Filo Mollusca")
+
 st.markdown("Como podemos ver pelo gráfico, o Filo **Mollusca**, é o filo com maior quantidade de fósseis "
-            "presentes em nosso conjunto, por isso, iremos separar este filo, e analisar a classe biológica de"
-            "cada filo. Para separar os dados, utilizaremos o código abaixo:")
+            "presentes em nosso conjunto, por isso, iremos separa-lo, e analisar a classe biológica de"
+            "cada. Para separar os dados, utilizaremos o código abaixo:")
 
 st.code("molusca = dados[dados['filo'] == 'Mollusca']", language='python')
 
@@ -98,4 +100,30 @@ fig2 = go.Figure(data=[go.Histogram(x=molusca['classe'],marker_color='#EB89B5')]
 
 st.plotly_chart(fig2, use_container_width=True)
 
+st.subheader("Filo 'Foraminifera'")
 
+st.code("foraminifera = dados[dados['filo'] =='Foraminifera']", language='python')
+
+foraminifera = dados[dados['filo'] == 'Foraminifera']
+
+#layout = go.Layout(title="Número de Fósseis por Classe pertecentes ao Filo 'Foraminifera' no dataset", xaxis= {'title':'Classes'},
+#                  yaxis=dict(title='N° de fósseis'), hovermode='closest')
+#fig3 = go.Figure(data=[go.Histogram(x=foraminifera['classe'])], layout=layout)
+
+#st.plotly_chart(fig3, use_container_width=True)
+
+st.code(foraminifera['classe'].value_counts(normalize=True)*100, language='python')
+st.write("Todos os fósseis do filo Foramifera não possuem a classe informada.")
+
+
+st.subheader("Filo 'Bryozoa'")
+
+st.code("foraminifera = dados[dados['filo'] =='Foraminifera']", language='python')
+
+bryozoa = dados[dados['filo'] == 'Bryozoa']
+
+layout = go.Layout(title="Número de Fósseis por Classe pertecentes ao Filo 'Foraminifera' no dataset", xaxis= {'title':'Classes'},
+                 yaxis=dict(title='N° de fósseis'), hovermode='closest')
+fig3 = go.Figure(data=[go.Histogram(x=bryozoa['classe'])], layout=layout)
+
+st.plotly_chart(fig3, use_container_width=True)
