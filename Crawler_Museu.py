@@ -75,7 +75,7 @@ def Formata_Palavra(contador, id_index):
 
 """###Função para coletar os dados"""
 
-def coleta_info(id_index, contador, startIndex): 
+def coleta_info(id_index, contador, startIndex, n_registros): 
   #Definindo algumas variáveis
   data_atual = date.today()
   jpg = ".jpg"
@@ -83,7 +83,7 @@ def coleta_info(id_index, contador, startIndex):
   id = 1
   id = int(id)
 
-  for i in range(100):  
+  for i in range(n_registros):  
 
     id_index = str(id_index)
 
@@ -324,28 +324,25 @@ def coleta_info(id_index, contador, startIndex):
 
   csv_file.close()
 
-Cria_Diretorios()
+if __name__ == '__main__':
+  Cria_Diretorios()
 
-"""##Iniciando algumas váriavies"""
+  """##Iniciando algumas váriavies"""
 
-id_index = 0
-contador = 0
-lista_link = []
-startIndex = 0
+  id_index = 0
+  contador = 0
+  lista_link = []
+  startIndex = 0
 
-Coleta_Link(contador, id_index, startIndex)
+  Coleta_Link(contador, id_index, startIndex)
 
-"""##Função para pegar o link do fóssil """
+  """##Função para pegar o link do fóssil """
 
-"""##Criando o CSV"""
+  """##Criando o CSV"""
 
-csv_file = open('Dados.csv', 'w', newline='')
-csv_writer = csv.writer(csv_file)
-csv_writer.writerow(['id', 'link', 'Titulo_pagina', 'foto', 'nome_foto', 'numero_catalogo', 'colecao_original','estado_colecao', 'filo', 'classe', 'ordem', 'familia', 'genero', 'especie', 'nome', 'país', 'estado_provincia', 'municipio', 'nome_coletor', 'era', 'sistema', 'series', 'estagio', 'data_coleta'])
+  csv_file = open('Dados.csv', 'w', newline='')
+  csv_writer = csv.writer(csv_file)
+  csv_writer.writerow(['id', 'link', 'Titulo_pagina', 'foto', 'nome_foto', 'numero_catalogo', 'colecao_original','estado_colecao', 'filo', 'classe', 'ordem', 'familia', 'genero', 'especie', 'nome', 'país', 'estado_provincia', 'municipio', 'nome_coletor', 'era', 'sistema', 'series', 'estagio', 'data_coleta'])
 
-coleta_info(contador, id_index, startIndex)
-
-dados = pd.read_csv("/content/Coletas/Coleta_21-05-2021/Dados.csv")
-dados.head()
-
-nome_coletor, colecao_original
+  n_registros = int(input("Digite o número de Fósseis que deseja coletar: "))
+  coleta_info(contador, id_index, startIndex, n_registros)
