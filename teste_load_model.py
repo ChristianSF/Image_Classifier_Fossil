@@ -30,7 +30,7 @@ import tensorflow as tf
 import tensorflow_hub as hub
 import keras
 
-modelo = tf.keras.models.load_model("/content/Modelo_Novo.h5")
+modelo = tf.keras.models.load_model("/content/drive/MyDrive/Fossil_Classification/Modelo_Novo.h5")
 
 modelo.summary()
 
@@ -140,7 +140,6 @@ def enhance_image(img_str, filename):
     d = ImageDraw.Draw(img_teste)
     d.text((10,10), "Essa classe pertence a classe {} com {:.2f}% de precisão.".format(classes[np.argmax(score)], 100 * np.max(score)), fill=(255,255,0))
     img_teste.save('teste.png')
-    sr_str = tf_to_b64('teste.png')
 
     lr = image_card(img_str, header="Original Image")
     sr = image_card(sr_str, header="Enhanced Image")
@@ -148,3 +147,29 @@ def enhance_image(img_str, filename):
     return lr, sr
 
 app.run_server(mode='external')
+
+predictions = modelo.predict(teste)
+score = tf.nn.softmax(predictions[0])
+img_teste = Image.new('RGB', (420, 100), color = (73, 109, 137))
+ 
+d = ImageDraw.Draw(img_teste)
+d.text((10,10), "Essa classe pertence a classe {} com {:.2f}% de precisão.".format(classes[np.argmax(score)], 100 * np.max(score)), fill=(255,255,0))
+img_teste.save('teste.png')
+sr_str = tf_to_b64('teste.png')
+
+img = keras.preprocessing.image.load_img(
+      teste, target_size=(img_height, img_width))
+img_array = keras.preprocessing.image.img_to_array(img)
+img_array = tf.expand_dims(img_array, 0) 
+
+predictions = modelo.predict(img_array)
+score = tf.nn.softmax(predictions[0])
+
+#print("Essa classe pertence a classe {} com {:.2f}% de precisão.".format(classes[np.argmax(score)], 100 * np.max(score)))
+
+img_teste = Image.new('RGB', (420, 100), color = (73, 109, 137))
+ 
+d = ImageDraw.Draw(img_teste)
+d.text((10,10), "Essa classe pertence a classe {} com {:.2f}% de precisão.".format(classes[np.argmax(score)], 100 * np.max(score)), fill=(255,255,0))
+img_teste.save('teste.png')
+
