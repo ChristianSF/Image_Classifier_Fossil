@@ -120,15 +120,23 @@ def main():
     callbacks = [
         keras.callbacks.EarlyStopping(monitor="val_loss", patience=8, restore_best_weights=True),
         keras.callbacks.ReduceLROnPlateau(monitor="val_loss", factor=0.5, patience=3),
-        keras.callbacks.ModelCheckpoint(saida / "modelo.keras", monitor="val_loss", save_best_only=True),
-        keras.callbacks.CSVLogger(saida / "historico.csv"),
+        keras.callbacks.ModelCheckpoint(str(saida / "modelo.keras"), monitor="val_loss", save_best_only=True),
+        keras.callbacks.CSVLogger(str(saida / "historico.csv")),
     ]
     modelo.fit(ds_treino, validation_data=ds_val, epochs=args.epocas, class_weight=pesos, callbacks=callbacks)
+
+    # O EarlyStopping só restaura os melhores pesos quando interrompe o treino.
+    # Se todas as épocas rodarem, o modelo em memória é o da última época, então
+    # recarregamos o checkpoint para avaliar exatamente o modelo que fica salvo.
+    modelo = keras.models.load_model(saida / "modelo.keras")
 
     # Avaliação no teste (nunca visto no treino nem na seleção do modelo)
     logits = modelo.predict(ds_teste)
     y_pred = logits.argmax(axis=1)
     y_true = teste["rotulo"].map({c: i for i, c in enumerate(classes)}).values
+    # labels explícitos: sem eles, uma classe que não aparece no teste nem nas
+    # previsões desalinha target_names e a matriz de confusão.
+    labels = list(range(len(classes)))
     probs = softmax(logits)
     auc_agregadas, auc_por_classe, curvas_roc = calcular_auc(y_true, probs, classes)
 
@@ -136,20 +144,22 @@ def main():
         **auc_agregadas,
         "auc_roc_por_classe": auc_por_classe,
         "acuracia": float(accuracy_score(y_true, y_pred)),
-        "f1_macro": float(f1_score(y_true, y_pred, average="macro")),
-        "f1_ponderado": float(f1_score(y_true, y_pred, average="weighted")),
+        "f1_macro": float(f1_score(y_true, y_pred, labels=labels, average="macro", zero_division=0)),
+        "f1_ponderado": float(f1_score(y_true, y_pred, labels=labels, average="weighted", zero_division=0)),
         "n_teste": int(len(y_true)),
         "classes": classes,
         "augmentation": not args.sem_augmentation,
         "peso_classes": not args.sem_peso_classes,
         "seed": args.seed,
     }
-    relatorio = classification_report(y_true, y_pred, target_names=classes, digits=4)
-    matriz = pd.DataFrame(confusion_matrix(y_true, y_pred), index=classes, columns=classes)
+    relatorio = classification_report(
+        y_true, y_pred, labels=labels, target_names=classes, digits=4, zero_division=0
+    )
+    matriz = pd.DataFrame(confusion_matrix(y_true, y_pred, labels=labels), index=classes, columns=classes)
 
-    (saida / "classes.json").write_text(json.dumps(classes, ensure_ascii=False, indent=2))
-    (saida / "metricas.json").write_text(json.dumps(metricas, ensure_ascii=False, indent=2))
-    (saida / "relatorio.txt").write_text(relatorio)
+    (saida / "classes.json").write_text(json.dumps(classes, ensure_ascii=False, indent=2), encoding="utf-8")
+    (saida / "metricas.json").write_text(json.dumps(metricas, ensure_ascii=False, indent=2), encoding="utf-8")
+    (saida / "relatorio.txt").write_text(relatorio, encoding="utf-8")
     matriz.to_csv(saida / "matriz_confusao.csv")
     curvas_roc.to_csv(saida / "curvas_roc.csv", index=False)
 
