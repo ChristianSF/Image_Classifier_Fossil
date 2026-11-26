@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.venv/
+venv/
+.env
+
+# Artefatos gerados
+modelos/
+data/*_limpo.csv
+data/splits_*.csv
+data/imagens/
+*.h5
+*.keras
