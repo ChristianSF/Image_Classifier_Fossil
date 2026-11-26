@@ -17,6 +17,7 @@ scripts/
   limpar_metadados.py       Gera o CSV limpo
   preparar_splits.py        Gera o CSV de splits a partir da pasta de imagens
   treinar_baseline.py       Treina e avalia a CNN no conjunto de teste
+  gerar_imagens_sinteticas.py  Imagens falsas para testar o pipeline sem os dados reais
 data/dados_mnhn_2021.csv    Metadados coletados em 2021 (9.489 espécimes)
 img/                        Imagens de exemplo usadas no app
 notebooks/                  Notebooks originais de 2021 (EDA e treinos)
@@ -37,9 +38,40 @@ python scripts/preparar_splits.py --imagens /caminho/para/imagens --saida data/s
 # 3. Treino e avaliação
 python scripts/treinar_baseline.py --splits data/splits_filo.csv --saida modelos/filo_cnn
 
-# 4. App
+# 4. App (no Windows/PowerShell: $env:MODELO_DIR="modelos/filo_cnn"; streamlit run app/streamlit_app.py)
 MODELO_DIR=modelos/filo_cnn streamlit run app/streamlit_app.py
 ```
+
+A aba de dados do app funciona sem modelo treinado; a aba do classificador mostra um aviso até existir `modelo.keras` em `MODELO_DIR`.
+
+### Formato das imagens
+
+`preparar_splits.py` aceita qualquer pasta com uma subpasta por classe, que é o formato a ser usado também na recoleta pelo GBIF:
+
+```
+imagens/
+  Arthropoda/*.jpg
+  Bryozoa/*.jpg
+  Mollusca/*.jpg
+```
+
+O nome da subpasta vira o rótulo. Imagens idênticas (mesmo md5) são removidas antes do split, e classes com menos de `--min-por-classe` imagens (padrão 20) são descartadas.
+
+### Teste rápido no Colab
+
+Para conferir o pipeline de ponta a ponta sem as imagens reais:
+
+```bash
+!git clone -b refatoracao https://github.com/ChristianSF/Image_Classifier_Fossil
+%cd Image_Classifier_Fossil
+!pip install -q -r requirements.txt
+!python scripts/limpar_metadados.py
+!python scripts/gerar_imagens_sinteticas.py --saida data/sinteticas --por-classe 40
+!python scripts/preparar_splits.py --imagens data/sinteticas --saida data/splits_sint.csv
+!python scripts/treinar_baseline.py --splits data/splits_sint.csv --saida modelos/sint --epocas 3
+```
+
+Com imagens sintéticas as métricas não significam nada; o objetivo é só verificar que todos os arquivos de saída são gerados.
 
 Para reproduzir o setup de 2021 (sem augmentation e sem peso por classe):
 

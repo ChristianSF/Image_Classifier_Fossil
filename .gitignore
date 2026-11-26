@@ -10,5 +10,6 @@ modelos/
 data/*_limpo.csv
 data/splits_*.csv
 data/imagens/
+data/sinteticas/
 *.h5
 *.keras
