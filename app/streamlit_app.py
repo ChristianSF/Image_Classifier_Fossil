@@ -24,8 +24,6 @@ from fossil.metadata import limpar_metadados  # noqa: E402
 
 CAMINHO_DADOS = RAIZ / "data" / "dados_mnhn_2021.csv"
 MODELO_DIR = Path(os.environ.get("MODELO_DIR", RAIZ / "modelos" / "filo_cnn"))
-TAMANHO_IMG = (180, 180)
-
 EXEMPLOS = ["Img_0049.jpg", "Img_00104.jpg", "Img_00274.jpg", "Img_00201.jpg", "Img_00235.jpg", "Img_00266.jpg"]
 
 
@@ -39,8 +37,23 @@ def carregar_modelo(pasta: Path):
     import keras  # importado aqui para a aba de dados abrir sem TensorFlow
 
     modelo = keras.models.load_model(pasta / "modelo.keras")
-    classes = json.loads((pasta / "classes.json").read_text())
+    classes = json.loads((pasta / "classes.json").read_text(encoding="utf-8"))
     return modelo, classes
+
+
+def preprocessar(img: Image.Image, modelo) -> np.ndarray:
+    """Redimensiona como no treino (tf.image.resize bilinear, sem antialias).
+
+    O resize do PIL usa outro filtro e antialias, o que muda os pixels de
+    entrada em relação ao que o modelo viu no treino. O tamanho vem do próprio
+    modelo, para não duplicar a constante de fossil/model.py.
+    """
+    import keras
+
+    altura, largura = modelo.input_shape[1:3]
+    arr = np.asarray(img, dtype="float32")[None, ...]
+    arr = keras.ops.image.resize(arr, (altura, largura), interpolation="bilinear", antialias=False)
+    return keras.ops.convert_to_numpy(arr)
 
 
 def softmax(x: np.ndarray) -> np.ndarray:
@@ -70,26 +83,26 @@ def aba_dados():
     st.subheader("Exemplos de imagens")
     for linha in (EXEMPLOS[:3], EXEMPLOS[3:]):
         for col, nome in zip(st.columns(3), linha):
-            col.image(str(RAIZ / "img" / nome), use_container_width=True)
+            col.image(str(RAIZ / "img" / nome), width="stretch")
 
     st.subheader("Espécimes por filo")
     apenas_com_foto = st.checkbox("Considerar apenas espécimes com foto válida", value=True)
     base = com_foto if apenas_com_foto else df
     contagem = base["filo"].fillna("Não informado").value_counts().reset_index()
     contagem.columns = ["filo", "n"]
-    st.plotly_chart(px.bar(contagem, x="filo", y="n", labels={"n": "Nº de espécimes", "filo": "Filo"}), use_container_width=True)
+    st.plotly_chart(px.bar(contagem, x="filo", y="n", labels={"n": "Nº de espécimes", "filo": "Filo"}), width="stretch")
 
     st.subheader("Classes dentro de um filo")
     filos = contagem["filo"].tolist()
     filo = st.selectbox("Filo", filos, index=filos.index("Mollusca") if "Mollusca" in filos else 0)
     classes = base.loc[base["filo"] == filo, "classe"].fillna("Não informado").value_counts().reset_index()
     classes.columns = ["classe", "n"]
-    st.plotly_chart(px.bar(classes, x="classe", y="n", labels={"n": "Nº de espécimes", "classe": "Classe"}), use_container_width=True)
+    st.plotly_chart(px.bar(classes, x="classe", y="n", labels={"n": "Nº de espécimes", "classe": "Classe"}), width="stretch")
 
     st.subheader("Espécimes por era geológica")
     eras = base["era"].fillna("Não informado").value_counts().reset_index()
     eras.columns = ["era", "n"]
-    st.plotly_chart(px.bar(eras, x="era", y="n", labels={"n": "Nº de espécimes", "era": "Era"}), use_container_width=True)
+    st.plotly_chart(px.bar(eras, x="era", y="n", labels={"n": "Nº de espécimes", "era": "Era"}), width="stretch")
 
     with st.expander("Ver tabela"):
         st.dataframe(base)
@@ -113,7 +126,7 @@ def aba_classificador():
     img = Image.open(arquivo).convert("RGB")
     st.image(img, width=300)
 
-    entrada = np.asarray(img.resize(TAMANHO_IMG), dtype="float32")[None, ...]
+    entrada = preprocessar(img, modelo)
     probs = softmax(modelo.predict(entrada, verbose=0)[0])
     ordem = np.argsort(probs)[::-1]
 
