@@ -20,6 +20,7 @@ def main():
     args = p.parse_args()
 
     df = limpar_metadados(args.entrada)
+    Path(args.saida).parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(args.saida, index=False)
 
     n = len(df)
