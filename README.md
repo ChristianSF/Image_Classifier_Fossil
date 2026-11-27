@@ -21,6 +21,7 @@ scripts/
 data/dados_mnhn_2021.csv    Metadados coletados em 2021 (9.489 espécimes)
 img/                        Imagens de exemplo usadas no app
 notebooks/                  Notebooks originais de 2021 (EDA e treinos)
+  coleta_gbif.ipynb         Coleta das imagens do MNHN pelo GBIF para o Google Drive (Colab)
 legacy/                     Código original de 2021 (crawler e apps), mantido como histórico
 ```
 
