@@ -1,0 +1,13 @@
+# Dados e avaliação
+pandas>=2.0
+numpy>=1.26
+scikit-learn>=1.3
+pillow>=10.0
+
+# Treino da CNN baseline
+tensorflow>=2.16
+keras>=3.0
+
+# App
+streamlit>=1.50
+plotly>=5.20
